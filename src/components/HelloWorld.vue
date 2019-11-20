@@ -1,5 +1,26 @@
 <template>
   <div class="hello">
+    <!-- <div id="map"></div> -->
+    <GmapMap
+      :center="latLgn"
+      :zoom="10"
+      @center_changed="handleCenterChanged"
+      @dragend="handleDragend"
+      map-type-id="roadmap"
+      style="width: 100%; height: 300px"
+    >
+      <GmapMarker
+        :key="index"
+        v-for="(m, index) in markers"
+        :position="m.position"
+        :clickable="true"
+        :draggable="true"
+        @click="center=m.position"
+      />
+    </GmapMap>
+    <!-- <marquee scrollamount="10" loop="-1">
+      <div class="inner">🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔</div>
+    </marquee> -->
     <h1>{{ cityName }}에서 오늘 모입지?</h1>
     <div>Lat: {{ lat }}</div>
     <div>Lon: {{ lon }}</div>
@@ -16,22 +37,34 @@ export default {
     msg: String,
     lat: Number,
     lon: Number,
+    latLgn: Object,
     cityName: String,
-    temperature: String,
+    temperature: String
   },
-  created: function () {
+  created: function() {
     console.log("created");
 
-    navigator.geolocation.getCurrentPosition((position) => {
-      this.lat = position.coords.latitude
-      this.lon = position.coords.longitude
+    navigator.geolocation.getCurrentPosition(position => {
+      this.lat = position.coords.latitude;
+      this.lon = position.coords.longitude;
+      this.latLgn = { lat: this.lat, lng: this.lon };
       this.fetchWeather(this.lat, this.lon);
     });
+
+    // var map;
+    // function initMap() {
+    //   map = new google.maps.Map(document.getElementById('map'), {
+    //     center: {lat: -34.397, lng: 150.644},
+    //     zoom: 8
+    //   });
+    // }
+
+    // initMap();
   },
   computed: {
-    clothes: function () {
+    clothes: function() {
       const temp = this.temperature;
-      console.log("컴퓨티드", temp, temp < 4)
+      console.log("컴퓨티드", temp, temp < 4);
 
       if (temp >= 28) {
         return "민소매, 반팔, 반바지, 짧은 치마, 린넨 옷";
@@ -62,18 +95,26 @@ export default {
   },
   methods: {
     // 계산된 getter
-    fetchWeather: function (lat, lon) {
+    fetchWeather: function(lat, lon) {
       const that = this;
-      fetch(`http://api.openweathermap.org/data/2.5/weather?appid=0f4f911a6ae37361da7bfcf43622bb61&lang=KR&units=metric&lat=${lat}&lon=${lon}`)
+      fetch(
+        `http://api.openweathermap.org/data/2.5/weather?appid=0f4f911a6ae37361da7bfcf43622bb61&lang=KR&units=metric&lat=${lat}&lon=${lon}`
+      )
         .then(res => {
-          console.log({res})
+          console.log({ res });
           return res.json();
         })
         .then(data => {
-          console.log({data}, that)
+          console.log({ data }, that);
           that.cityName = data.name;
           that.temperature = data.main.temp;
         });
+    },
+    handleCenterChanged: function(a) {
+      console.log("힝구", a.lat())
+    },
+    handleDragend: function(a, b) {
+      console.log("힝구2", a, b)
     }
   }
 };
@@ -81,18 +122,21 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
-h3 {
-  margin: 40px 0 0;
+#map {
+  height: 100%;
 }
-ul {
-  list-style-type: none;
+/* Optional: Makes the sample page fill the window. */
+html, body {
+  height: 100%;
+  margin: 0;
   padding: 0;
 }
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
+marquee {
+  font-size: 3rem;
+
+  /* .inner {
+    position: relative;
+    left: -97%;
+  } */
 }
 </style>
